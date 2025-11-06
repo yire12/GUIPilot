@@ -1,47 +1,38 @@
-import string
 import random
-from copy import deepcopy
+import string
 from collections import Counter
+from copy import deepcopy
 
+import albumentations as A
 import cv2
 import numpy as np
-import albumentations as A
 from scipy.optimize import linear_sum_assignment
 
-from guipilot.entities import (
-    Bbox,
-    Inconsistency,
-    WidgetType,
-    Widget,
-    Screen
-)
-from .utils import sample_p, get_context_color
+from guipilot.entities import Bbox, Inconsistency, Screen, Widget, WidgetType
+
+from .utils import get_context_color, sample_p
 
 
 def swap_widgets(screen: Screen, p: float) -> tuple[Screen, set]:
-    """Swap the positions of pairs of widgets that are of different types
-    """
+    """Swap the positions of pairs of widgets that are of different types"""
+
     def get_area_score(i: Widget, j: Widget) -> float:
-        """Calculate the ratio of widths of widgets.
-        """
+        """Calculate the ratio of widths of widgets."""
         areas = [i.area, j.area]
         return min(areas) / max(areas)
-    
+
     def get_width_score(i: Widget, j: Widget) -> float:
-        """Calculate the ratio of widths of widgets.
-        """
+        """Calculate the ratio of widths of widgets."""
         widths = [i.width, j.width]
         return min(widths) / max(widths)
-    
+
     def get_height_score(i: Widget, j: Widget) -> float:
-        """Calculate the ratio of heights of widgets.
-        """
+        """Calculate the ratio of heights of widgets."""
         heights = [i.height, j.height]
         return min(heights) / max(heights)
-    
+
     def swap(screen: Screen, i: Widget, j: Widget) -> None:
-        """Swap widgets on the screen, update their information
-        """
+        """Swap widgets on the screen, update their information"""
         # Extract the patches
         xmin_i, ymin_i, xmax_i, ymax_i = i.bbox
         xmin_j, ymin_j, xmax_j, ymax_j = j.bbox
@@ -63,8 +54,8 @@ def swap_widgets(screen: Screen, p: float) -> tuple[Screen, set]:
         j.bbox = bbox_a
 
         # Perform the swap with adjusted dimensions
-        screen.image[bbox_a[1]:bbox_a[3], bbox_a[0]:bbox_a[2]] = image_j[:j.height, :j.width]
-        screen.image[bbox_b[1]:bbox_b[3], bbox_b[0]:bbox_b[2]] = image_i[:i.height, :i.width]
+        screen.image[bbox_a[1] : bbox_a[3], bbox_a[0] : bbox_a[2]] = image_j[: j.height, : j.width]
+        screen.image[bbox_b[1] : bbox_b[3], bbox_b[0] : bbox_b[2]] = image_i[: i.height, : i.width]
 
     screen = deepcopy(screen)
     n = len(screen.widgets)
@@ -73,7 +64,8 @@ def swap_widgets(screen: Screen, p: float) -> tuple[Screen, set]:
     for i in range(n):
         for j in range(i + 1, n):
             widget_i, widget_j = screen.widgets[i], screen.widgets[j]
-            if widget_i.type == widget_j.type: continue
+            if widget_i.type == widget_j.type:
+                continue
             width_score = get_width_score(widget_i, widget_j)
             height_score = get_height_score(widget_i, widget_j)
             area_score = get_area_score(widget_i, widget_j)
@@ -86,7 +78,8 @@ def swap_widgets(screen: Screen, p: float) -> tuple[Screen, set]:
 
     for pair in pairs:
         row, col = pair
-        if row in used or col in used: continue
+        if row in used or col in used:
+            continue
         widget_i = screen.widgets[row]
         widget_j = screen.widgets[col]
         try:
@@ -107,22 +100,22 @@ def swap_widgets(screen: Screen, p: float) -> tuple[Screen, set]:
     sorted_widget_ids = [widget_ids[i] for i in sorted_indices]
     screen.widgets = dict(zip(sorted_widget_ids, sorted_widgets))
 
-    changed = set((id1, id2, Inconsistency.BBOX) for id1, id2 in pairs if id1 != id2) | set((id2, id1, Inconsistency.BBOX) for id1, id2 in pairs if id1 != id2)
+    changed = set((id1, id2, Inconsistency.BBOX) for id1, id2 in pairs if id1 != id2) | set(
+        (id2, id1, Inconsistency.BBOX) for id1, id2 in pairs if id1 != id2
+    )
     return screen, changed
 
 
 def change_widgets_text(screen: Screen, p: float) -> tuple[Screen, set]:
-    """Change the text of text-based widgets
-    """
+    """Change the text of text-based widgets"""
+
     def get_random_text(length: int) -> str:
-        """Generate a random string of length.
-        """
+        """Generate a random string of length."""
         letters = string.ascii_letters
-        return ''.join(random.choice(letters) for _ in range(length))
-    
+        return "".join(random.choice(letters) for _ in range(length))
+
     def get_max_font_scale(text: str, bbox: list, font: int, thickness: int) -> float:
-        """Calculate the maximum font scale such that the text fits inside the bbox.
-        """
+        """Calculate the maximum font scale such that the text fits inside the bbox."""
         xmin, ymin, xmax, ymax = bbox
         box_width = xmax - xmin
         box_height = ymax - ymin
@@ -145,7 +138,8 @@ def change_widgets_text(screen: Screen, p: float) -> tuple[Screen, set]:
     changed = set()
 
     for id, widget in widgets.items():
-        if not widget.texts or not widget.text_bboxes: continue
+        if not widget.texts or not widget.text_bboxes:
+            continue
 
         for text, bbox in zip(widget.texts, widget.text_bboxes):
             # Replace with random text that scales within the bbox
@@ -175,8 +169,8 @@ def change_widgets_text(screen: Screen, p: float) -> tuple[Screen, set]:
 
 
 def change_widgets_color(screen: Screen, p: float) -> tuple[Screen, set]:
-    """Change the color of image-based widgets
-    """
+    """Change the color of image-based widgets"""
+
     def transform(image: np.ndarray) -> np.ndarray:
         # Apply bilateral filter to reduce noise while preserving edges
         filtered_image = cv2.bilateralFilter(image, d=9, sigmaColor=75, sigmaSpace=75)
@@ -184,8 +178,8 @@ def change_widgets_color(screen: Screen, p: float) -> tuple[Screen, set]:
         # Define a broader mask for the whitespace areas
         hsv = cv2.cvtColor(filtered_image, cv2.COLOR_BGR2HSV)
         sensitivity = 15
-        lower_white = np.array([0,0,255-sensitivity])
-        upper_white = np.array([255,sensitivity,255])
+        lower_white = np.array([0, 0, 255 - sensitivity])
+        upper_white = np.array([255, sensitivity, 255])
         mask = cv2.inRange(hsv, lower_white, upper_white)
         non_whitespace_mask = cv2.bitwise_not(mask)
 

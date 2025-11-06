@@ -1,4 +1,5 @@
 from __future__ import annotations
+
 import typing
 from abc import ABC, abstractmethod
 from timeit import default_timer as timer
@@ -6,7 +7,7 @@ from timeit import default_timer as timer
 import numpy as np
 
 if typing.TYPE_CHECKING:
-    from guipilot.entities import Widget, Screen
+    from guipilot.entities import Screen, Widget
 
 
 class ScreenChecker(ABC):
@@ -15,7 +16,7 @@ class ScreenChecker(ABC):
 
         Args:
             screen_i, screen_j: two screens containing a list of widgets to compare
-            pairs: a list of tuples, where each tuple `(x, y)` represents a pair of matching 
+            pairs: a list of tuples, where each tuple `(x, y)` represents a pair of matching
             widget IDs. `x` is from `screen_i` and `y` is from `screen_j`.
 
         Returns:

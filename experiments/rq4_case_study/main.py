@@ -1,19 +1,18 @@
-import os
 import json
+import os
 
 import cv2
 from dotenv import load_dotenv
+from utils import check_action, get_action_completion, get_report, get_scores, get_screen, visualize
 
 from guipilot.agent import GPTAgent
-from guipilot.matcher import GUIPilotV2 as GUIPilotMatcher
 from guipilot.checker import GVT as GVTChecker
 from guipilot.entities import Screen
-from utils import get_screen, get_scores, get_report, get_action_completion, visualize, check_action
+from guipilot.matcher import GUIPilotV2 as GUIPilotMatcher
 
 
 def get_processes(mockups_path: str) -> list[str]:
-    """Get all paths of the nested processes in the case study dataset
-    """
+    """Get all paths of the nested processes in the case study dataset"""
     parent_dirs = set()
     for root, dirs, _ in os.walk(mockups_path):
         if "mockup" in dirs:
@@ -42,9 +41,11 @@ for p, process_path in enumerate(process_paths):
     process: list = json.load(open(json_path, "r"))
 
     for s, step in enumerate(process):
-        if s != 4: continue
+        if s != 4:
+            continue
         screen_filename: str = step["screen"]
-        if "branch" in screen_filename: continue
+        if "branch" in screen_filename:
+            continue
         real_screen: Screen = get_screen(implementation_path, screen_filename)
         mock_screen: Screen = get_screen(mockup_path, screen_filename.replace(".jpg", ".png"))
         print(f"[>] Screen {p}-{s+1}")
@@ -64,16 +65,18 @@ for p, process_path in enumerate(process_paths):
         while not action_correct and len(action_trials) < 3:
             agent_image, action_names, actions_raw, actions = get_action_completion(agent, real_screen, mock_actions)
             print(f"\t\t[>] VLM agent trial {len(action_trials) + 1}/3: ", actions_raw)
-            
+
             if len(actions) != len(true_actions):
                 print("\t\t[>]Incorrect length")
                 action_trials.append(actions_raw)
                 continue
 
-            if not all([
-                check_action(true_action, action_name, action)
-                for true_action, action_name, action in zip(true_actions, action_names, actions)
-            ]):
+            if not all(
+                [
+                    check_action(true_action, action_name, action)
+                    for true_action, action_name, action in zip(true_actions, action_names, actions)
+                ]
+            ):
                 action_trials.append(actions_raw)
                 continue
 
@@ -90,10 +93,6 @@ for p, process_path in enumerate(process_paths):
 
         # Generate report
         report_path = os.path.join(output_path, "report.json")
-        report = get_report(
-            process_path, s, 
-            match_time, check_time, 
-            pairs, inconsistencies,
-            action_correct, action_trials
-        )
-        with open(report_path, "w") as f: f.write(report)
+        report = get_report(process_path, s, match_time, check_time, pairs, inconsistencies, action_correct, action_trials)
+        with open(report_path, "w") as f:
+            f.write(report)

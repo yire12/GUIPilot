@@ -1,16 +1,17 @@
 import numpy as np
 
 try:
-    import networkx as nx
-except:
+    import networkx as nx  # noqa: F401
+except ImportError:
     pass
-from fitz import Rect, Point
+from fitz import Point, Rect
 
 __all__ = ["rect", "point", "line", "line_seq"]
 
 
 X = 1080
 Y = 2400
+
 
 class Widget:
     def __init__(self, label, bounds, idx=0, is_removed=False) -> None:
@@ -103,6 +104,7 @@ class Widget:
         h = (bounds[3] - bounds[1]) / image_height
         return f"{label2id[label]} {x} {y} {w} {h}"
 
+
 class rect(Rect):
     def __init__(self, *args):
         if len(args) == 1:
@@ -173,11 +175,7 @@ class rect(Rect):
         tl = np.maximum(bboxes[:, :2], self_bbox[:2])
         br = np.minimum(bboxes[:, 2:], self_bbox[2:])
         area_i = np.prod(br - tl, axis=1) * (tl < br).all(axis=1)
-        area_u = (
-            np.prod(self_bbox[2:] - self_bbox[:2])
-            + np.prod(bboxes[:, 2:] - bboxes[:, :2], axis=1)
-            - area_i
-        )
+        area_u = np.prod(self_bbox[2:] - self_bbox[:2]) + np.prod(bboxes[:, 2:] - bboxes[:, :2], axis=1) - area_i
         return area_i / area_u
 
     def calc_intersect(self, bboxes: np.ndarray):
@@ -210,9 +208,7 @@ class rect(Rect):
         br = np.minimum(bboxes[:, 2:], self_bbox[2:])
         area_i = np.prod(br - tl, axis=1) * (tl < br).all(axis=1)
         area_other = np.prod(bboxes[:, 2:] - bboxes[:, :2], axis=1)
-        return area_i / np.minimum(area_self, area_other), area_i / np.maximum(
-            area_self, area_other
-        )
+        return area_i / np.minimum(area_self, area_other), area_i / np.maximum(area_self, area_other)
 
     def get_inner(self, bboxs: np.ndarray, threshold):
         bboxes = np.array(bboxs)
@@ -253,9 +249,7 @@ class rect(Rect):
         larger=False,
     ):
         f = rect if not isinstance(bbox1[0], rect) else lambda x: x
-        r = np.array(
-            [self.calc_combine_rate(f(b), larger, allow_overlap) for b in bbox1]
-        )
+        r = np.array([self.calc_combine_rate(f(b), larger, allow_overlap) for b in bbox1])
         if not sort:
             return r
         if max_only:
@@ -294,12 +288,7 @@ class rect(Rect):
         return rect(super().__sub__(p))
 
     def inner(self, other: "rect"):
-        return (
-            self.x0 > other.x0
-            and self.y0 > other.y0
-            and self.x1 < other.x1
-            and self.y1 < other.y1
-        )
+        return self.x0 > other.x0 and self.y0 > other.y0 and self.x1 < other.x1 and self.y1 < other.y1
 
     def relative_loc(self, other: "rect"):
         x = (self.x0 - other[0] + self.x1 - other[2]) / 2
@@ -334,12 +323,7 @@ class line:
                 raise ValueError("line: bad seq len")
             self.start = point(l[0], l[1])
             self.end = point(l[2], l[3])
-        if (
-            not directed
-            and ordered
-            and self.start.x >= self.end.x
-            and self.start.y >= self.end.y
-        ):
+        if not directed and ordered and self.start.x >= self.end.x and self.start.y >= self.end.y:
             a = self.start
             self.start = self.end
             self.end = a
@@ -468,11 +452,7 @@ class line:
         return np.where((np.abs(np.array(others) - np.array(self)) < d).all(axis=1))[0]
 
     def len_in_range(self, line_range):
-        if (
-            self.line_len < line_range[0]
-            or len(line_range) > 1
-            and self.line_len > line_range[1]
-        ):
+        if self.line_len < line_range[0] or len(line_range) > 1 and self.line_len > line_range[1]:
             return False
         return True
 

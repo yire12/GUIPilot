@@ -1,9 +1,10 @@
 """
 Test entity classes
 """
-import pytest
+
 import numpy as np
-from guipilot.entities import Bbox, Widget, WidgetType, Screen
+
+from guipilot.entities import Bbox, Screen, Widget, WidgetType
 
 
 def test_bbox_creation():
@@ -26,9 +27,7 @@ def test_widget_creation():
 def test_screen_creation():
     """Test Screen creation"""
     image = np.zeros((1080, 1920, 3), dtype=np.uint8)
-    widgets = {
-        0: Widget(type=WidgetType.Button, bbox=Bbox(0, 0, 100, 100))
-    }
+    widgets = {0: Widget(type=WidgetType.Button, bbox=Bbox(0, 0, 100, 100))}
     screen = Screen(image, widgets)
     assert screen.image.shape == (1080, 1920, 3)
     assert len(screen.widgets) == 1
@@ -41,4 +40,3 @@ def test_screen_creation_without_widgets():
     screen = Screen(image)
     assert screen.image.shape == (1080, 1920, 3)
     assert isinstance(screen.widgets, dict)
-

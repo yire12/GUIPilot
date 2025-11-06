@@ -1,15 +1,16 @@
 from __future__ import annotations
+
 import typing
 from timeit import default_timer as timer
 
 import numpy as np
 from sklearn.neighbors import NearestNeighbors
 
-from guipilot.matcher import WidgetMatcher, Pair, Score
+from guipilot.matcher import Pair, Score, WidgetMatcher
 
 if typing.TYPE_CHECKING:
     from guipilot.entities import Screen
-    
+
 
 class GVT(WidgetMatcher):
     def __init__(self, threshold) -> None:
@@ -25,10 +26,7 @@ class GVT(WidgetMatcher):
         knn = NearestNeighbors(n_neighbors=1, metric="manhattan")
         knn.fit(points_j)
         distances, indices = knn.kneighbors(points_i)
-        sorted_distances_indices = sorted(
-            enumerate(zip(distances, indices)),
-            key=lambda x: x[1][0][0]  # Sort by the distance
-        )
+        sorted_distances_indices = sorted(enumerate(zip(distances, indices)), key=lambda x: x[1][0][0])  # Sort by the distance
 
         paired_ids = set()
         pairs, scores = [], []

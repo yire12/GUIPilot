@@ -32,7 +32,7 @@ This experiment tests the ability of GUIPilot to detect inconsistencies between 
    ```bash
    export DATASET_PATH=/path/to/your/dataset
    ```
-   
+
    Or create a `.env` file in this directory:
    ```
    DATASET_PATH=/path/to/your/dataset
@@ -223,11 +223,11 @@ for matcher in df['matcher'].unique():
     tp = subset['tp'].sum()
     fp = subset['fp'].sum()
     fn = subset['fn'].sum()
-    
+
     precision = tp / (tp + fp) if (tp + fp) > 0 else 0
     recall = tp / (tp + fn) if (tp + fn) > 0 else 0
     f1 = 2 * precision * recall / (precision + recall) if (precision + recall) > 0 else 0
-    
+
     print(f"{matcher}: Precision={precision:.2f}, Recall={recall:.2f}, F1={f1:.2f}")
 ```
 
@@ -237,7 +237,7 @@ for matcher in df['matcher'].unique():
 
 **Error**: `Found 0 images`
 
-**Solution**: 
+**Solution**:
 - Check that `DATASET_PATH` is set correctly
 - Ensure image files are named with numeric names (e.g., `1.jpg`, `2.jpg`)
 - Verify the directory structure matches the expected format
@@ -246,7 +246,7 @@ for matcher in df['matcher'].unique():
 
 **Error**: `HTTPConnectionPool(host='localhost', port=5000): Max retries exceeded`
 
-**Solution**: 
+**Solution**:
 - This is **not an error** if you're using pre-annotated JSON files
 - The experiment will use the JSON annotations instead of OCR
 - If you need OCR, start the OCR service on `localhost:5000`
@@ -310,4 +310,3 @@ If you use this experiment in your research, please cite:
 ## Contact
 
 For questions or issues, please refer to the main GUIPilot repository or open an issue on GitHub.
-

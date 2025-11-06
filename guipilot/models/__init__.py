@@ -1,2 +1,2 @@
-from .detector.detector import Detector
-from .ocr.ocr import OCR
+from .detector.detector import Detector  # noqa: F401
+from .ocr.ocr import OCR  # noqa: F401

@@ -1,3 +1,3 @@
-from .matcher import WidgetMatcher, Pair, Score
-from .guipilotv2 import GUIPilotV2
-from .gvt import GVT
+from .guipilotv2 import GUIPilotV2  # noqa: F401
+from .gvt import GVT  # noqa: F401
+from .matcher import Pair, Score, WidgetMatcher  # noqa: F401
