@@ -1,0 +1,117 @@
+name: Experiments Validation
+
+on:
+  push:
+    branches: [ main, master ]
+    paths:
+      - 'experiments/**'
+      - 'guipilot/**'
+  pull_request:
+    branches: [ main, master ]
+    paths:
+      - 'experiments/**'
+      - 'guipilot/**'
+  workflow_dispatch:
+
+jobs:
+  validate-rq1:
+    name: Validate RQ1 Experiment
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -e .
+      
+      - name: Check RQ1 requirements
+        working-directory: experiments/rq1_screen_inconsistency
+        run: |
+          python check_requirements.py || echo "Check completed with warnings"
+      
+      - name: Validate RQ1 code structure
+        working-directory: experiments/rq1_screen_inconsistency
+        run: |
+          python -c "
+          import sys
+          sys.path.insert(0, '.')
+          from main import *
+          from utils import *
+          from mutate import *
+          print('RQ1 code structure validated')
+          "
+
+  validate-rq2:
+    name: Validate RQ2 Experiment
+    runs-on: ubuntu-latest
+    continue-on-error: true
+    steps:
+      - uses: actions/checkout@v4
+      
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -e .
+          pip install uiautomator2
+      
+      - name: Check RQ2 requirements
+        working-directory: experiments/rq2_flow_inconsistency
+        run: |
+          python check_requirements.py || echo "RQ2 requires Android device and dataset"
+      
+      - name: Validate RQ2 code structure
+        working-directory: experiments/rq2_flow_inconsistency
+        run: |
+          python -c "
+          import sys
+          sys.path.insert(0, '.')
+          from actions import Automator, Record, Step
+          from utils import *
+          print('RQ2 code structure validated')
+          "
+
+  validate-rq4:
+    name: Validate RQ4 Experiment
+    runs-on: ubuntu-latest
+    continue-on-error: true
+    steps:
+      - uses: actions/checkout@v4
+      
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -e .
+          pip install jsbeautifier
+      
+      - name: Check RQ4 requirements
+        working-directory: experiments/rq4_case_study
+        run: |
+          python check_requirements.py || echo "RQ4 requires OpenAI API key and dataset"
+      
+      - name: Validate RQ4 code structure
+        working-directory: experiments/rq4_case_study
+        run: |
+          python -c "
+          import sys
+          sys.path.insert(0, '.')
+          from actions import Translator
+          from utils import *
+          print('RQ4 code structure validated')
+          "
+
