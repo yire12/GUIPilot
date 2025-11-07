@@ -94,9 +94,12 @@ jobs:
 
       - name: Build package
         run: |
-          python -m build
+          echo "Starting build..."
+          python -m build --verbose
           echo "Build completed, checking artifacts..."
           ls -la dist/ || echo "No dist directory found"
+          echo "Build artifacts:"
+          ls -lh dist/*.whl dist/*.tar.gz 2>/dev/null || echo "No build artifacts found"
 
       - name: Check package contents
         if: success()
@@ -112,10 +115,12 @@ jobs:
         continue-on-error: true
 
       - name: Upload build artifacts
+        if: success()
         uses: actions/upload-artifact@v3
         with:
           name: dist
           path: dist/
+          if-no-files-found: ignore
 
   dependency-check:
     name: Dependency Check
