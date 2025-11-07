@@ -182,4 +182,3 @@ jobs:
       - name: Validate markdown
         run: |
           pip install markdownlint-cli2 || echo "Markdown linting skipped"
-
