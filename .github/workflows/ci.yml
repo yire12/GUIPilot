@@ -90,16 +90,22 @@ jobs:
       - name: Install build dependencies
         run: |
           python -m pip install --upgrade pip
-          pip install build wheel
+          pip install build wheel setuptools
 
       - name: Build package
         run: |
           python -m build
+          echo "Build completed, checking artifacts..."
+          ls -la dist/ || echo "No dist directory found"
 
       - name: Check package contents
+        if: success() && hash dist/*.whl 2>/dev/null
         run: |
-          pip install dist/*.whl || echo "Package installation check completed"
-          python -c "import guipilot; print('Package installed successfully')" || echo "Package import check completed"
+          echo "Installing package..."
+          pip install dist/*.whl --force-reinstall
+          echo "Testing package import..."
+          python -c "import guipilot; print('✅ Package installed and imported successfully')"
+        continue-on-error: true
 
       - name: Upload build artifacts
         uses: actions/upload-artifact@v3
