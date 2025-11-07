@@ -99,12 +99,16 @@ jobs:
           ls -la dist/ || echo "No dist directory found"
 
       - name: Check package contents
-        if: success() && hash dist/*.whl 2>/dev/null
+        if: success()
         run: |
-          echo "Installing package..."
-          pip install dist/*.whl --force-reinstall
-          echo "Testing package import..."
-          python -c "import guipilot; print('✅ Package installed and imported successfully')"
+          if ls dist/*.whl 1> /dev/null 2>&1; then
+            echo "Installing package..."
+            pip install dist/*.whl --force-reinstall
+            echo "Testing package import..."
+            python -c "import guipilot; print('✅ Package installed and imported successfully')"
+          else
+            echo "No wheel file found, skipping package check"
+          fi
         continue-on-error: true
 
       - name: Upload build artifacts
