@@ -8,8 +8,7 @@ version = "0.1.0"
 description = "A Consistency-based Mobile GUI Testing Approach for Detecting Application-specific Bugs"
 readme = "README.md"
 requires-python = ">=3.10"
-license = {text = "MIT"}
-license-files = ["LICENSE"]
+license = "MIT"
 authors = [
     {name = "GUIPilot Team"}
 ]
