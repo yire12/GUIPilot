@@ -84,3 +84,4 @@ python_files = ["test_*.py", "*_test.py"]
 python_classes = ["Test*"]
 python_functions = ["test_*"]
 addopts = "-v --cov=guipilot --cov-report=html --cov-report=term-missing"
+
