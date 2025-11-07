@@ -9,6 +9,7 @@ description = "A Consistency-based Mobile GUI Testing Approach for Detecting App
 readme = "README.md"
 requires-python = ">=3.10"
 license = {text = "MIT"}
+license-files = ["LICENSE"]
 authors = [
     {name = "GUIPilot Team"}
 ]
